@@ -1,4 +1,5 @@
 var fs = require('fs');
+var _ = require('lodash');
 const request = require('request');
 
 const API_HOST = 'http://api.formation.dataheroes.fr:8080/simulation';

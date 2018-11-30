@@ -1,8 +1,7 @@
 var _ = require('lodash');
-
 var helpers = require('./helpers.js')
 
-const USERNAME = "JE_DOIS_METTRE_MON_PRENOM";
+const USERNAME = "Rémi G. x Louis A.";
 const POSITION_ORIGINE = {
     lat: 0.5,
     lng: 0.5
@@ -26,30 +25,15 @@ var problems = {
     }
 };
 
-var solve_problem_dumb = function (problem) {
-    var solution = {
-        problem_id: problem.problem_id,
-        username: USERNAME,
-        orders: []
-    };
+var main = function() {
+    var size = 1000;
+    var population = initializePopulation(size, problems.problem1.orders);
+    var selection = select(500, population);
 
-    var pos = POSITION_ORIGINE;
-
-    while(problem.orders.length > 0) {
-        console.log(problem.orders.length);
-        // On prend la commande la plus proche et on l'ajoute au trajet du livreur
-        var order = findClosestOrder(problem.orders, pos);
-        solution.orders.push(order.order_id);
-
-        // On garde en mémoire la nouvelle position du livreur
-        pos.lat = order.pos_lat;
-        pos.lng = order.pos_lng;
-
-        // On retire la commande qui vient d'être réalisé
-        problem.orders.splice(problem.orders.indexOf(order), 1);
-    }
-    return solution;
-};
+    console.log(evaluate(selection[0]));
+    console.log(evaluate(selection[1]));
+    console.log(evaluate(selection[2]));
+}
 
 var findClosestOrder = function (orders, pos) {
     orders = orders.sort(function (orderA, orderB) {
@@ -58,5 +42,54 @@ var findClosestOrder = function (orders, pos) {
     return orders[orders.length-1];
 }
 
-var solution = solve_problem_dumb(problems.problem3);
-helpers.send_solution(solution);
+/**
+ * Initialize a population with random paths
+ * @param {int} n Size of the population
+ * @param {any[]} orders List of orders to use in order to create the population
+ * @returns {any[][]}
+ */
+var initializePopulation = function (n, orders) {
+    population = [];
+    for(var i = 0; i < n; i++) {
+        population.push(_.shuffle(orders));
+    }
+    return population;
+}
+
+/**
+ * Evaluate one path.
+ * @param {any[[]]} path
+ */
+var evaluate = function(orders) {
+    var total_distance_solution = 0;
+	var total_bonus_solution = 0;
+    var pos = POSITION_ORIGINE;
+
+    _.each(orders, function (order, i_order) {
+		var distance_order = helpers.compute_dist(pos.lat, pos.lng, order.pos_lat, order.pos_lng);
+        var bonus_order = Math.max(0, order.amount - i_order);
+
+		total_distance_solution += distance_order;
+		total_bonus_solution += bonus_order;
+		
+		pos.lat = order.pos_lat;
+		pos.lng = order.pos_lng;
+    });
+    
+    return total_bonus_solution - total_distance_solution;
+}
+
+/**
+ * Select the best elements in the population.
+ * @param {int} n Number of elements to select in the population. 
+ * @param {any[[]]} orders List of orders in which we want to select the population. 
+ */
+var select = function(n, ordersPopulation) {
+    var orderedOrdersPopulation = _.reverse(_.sortBy(ordersPopulation, function (orders) {
+        return evaluate(orders);
+    }));
+
+    return _.take(orderedOrdersPopulation, n);
+}
+
+main();
