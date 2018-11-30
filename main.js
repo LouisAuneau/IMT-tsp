@@ -1,7 +1,8 @@
 var _ = require('lodash');
 var helpers = require('./helpers.js')
 
-const USERNAME = "Rémi G. x Louis A.";
+const USERNAME = "Les plus beaux";
+const CROSSOVER_RATE = 0.3;
 const POSITION_ORIGINE = {
     lat: 0.5,
     lng: 0.5
@@ -92,4 +93,59 @@ var select = function(n, ordersPopulation) {
     return _.take(orderedOrdersPopulation, n);
 }
 
-main();
+var crossoverPopulation = function (ordersPopulation) {
+
+}
+
+var crossoverCouple = function (orders1, orders2) {
+    if (orders1.length != orders2.length)
+        return new Error("orders not of the same length, unable to crossover");
+
+    var sampleSize = Math.floor(CROSSOVER_RATE * orders1.length);
+    var child1 = [];
+    child1.length = orders1.length;
+    var child2 = [];
+    child2.length = orders2.length;
+    var samplePosition = _.random(0, orders1.length - sampleSize);
+    var sample1 = _.slice(orders1, samplePosition, samplePosition + sampleSize);
+    orders1.splice(samplePosition, sampleSize);
+    var sample2 = _.slice(orders2, samplePosition, samplePosition + sampleSize);
+    orders2.splice(samplePosition, sampleSize);
+
+    // Fill sample values into child orders
+    for (var i = samplePosition; i < samplePosition + sampleSize; i++) {
+        child1[i] =  sample2[i - samplePosition]
+        child2[i] =  sample1[i - samplePosition]
+    }
+    
+    // Fill remaining items for child1
+    var i_order = 0;
+    for (var i = 0; i < child1.length; i++) {
+        var order = child1[i];
+        if(order === undefined) {
+            if(child1.indexOf(orders1[i_order]) == -1) {
+                child1[i] = orders1[i_order];
+            }
+            i_order++;
+        }
+    };
+
+    // Fill remaining items for child2
+    var i_order = 0;
+    for (var i = 0; i < child2.length; i++) {
+        var order = child2[i];
+        if(order === undefined) {
+            if(child2.indexOf(orders2[i_order]) == -1) {
+                child2[i] = orders2[i_order];
+            }
+            i_order++;
+        }
+    };
+    
+    console.log(child1);
+    console.log(child2);
+}
+
+// main();
+
+crossoverCouple([1, 2, 3, 4, 5, 6, 7, 8], [9, 10, 11, 12, 13, 14, 15, 16])
